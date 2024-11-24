@@ -5,6 +5,8 @@ const app = express();
 const mongoose = require("mongoose");
 const cors = require("cors");
 const userRoutes = require("./routes/authRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
+
 app.use(express.json());
 app.use(cors());
 app.set("view engine", "ejs");
@@ -27,6 +29,7 @@ mongoose
 
 // Include user routes
 app.use(userRoutes);
+app.use(ticketRoutes);
 
 app.listen(5000, () => {
   console.log("Server Started");
