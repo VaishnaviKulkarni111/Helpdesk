@@ -6,17 +6,20 @@ const router = express.Router();
 
 const JWT_SECRET = "hvdvay6ert72839289()aiyg8t87qt72393293883uhefiuh78ttq3ifi78272jbkj?[]]pou89ywe";
 
-// Helper function for JWT verification
-const verifyToken = (req) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return null;
+// Helper function for JWT verification (directly in file)
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) {
+    return res.status(401).json({ message: "Authorization denied. No token provided." });
+  }
 
   try {
-    const decoded =  jwt.verify(token, JWT_SECRET);
-    console.log("decoded in verifytoken", decoded)
-    return decoded
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded; // Attach the decoded user information to `req.user`
+    next(); // Proceed to the next middleware/handler
   } catch (error) {
-    return null;
+    console.error("JWT verification error:", error);
+    return res.status(401).json({ message: "Invalid or expired token." });
   }
 };
 
@@ -24,18 +27,18 @@ const verifyToken = (req) => {
 router.post("/ticket", verifyToken, async (req, res) => {
   const { name, description, priority } = req.body;
 
-  try {
-    if (!name || !description || !priority) {
-      return res.status(400).json({ message: "All fields are required." });
-    }
+  if (!name || !description || !priority) {
+    return res.status(400).json({ message: "All fields are required." });
+  }
 
+  try {
     const newTicket = new Ticket({
       name,
       description,
       priority,
       status: "Active",
       comments: "No comments yet",
-      user: req.user.id, // Associate ticket with the authenticated user
+      createdBy: req.user.id, // Use `req.user` set by `verifyToken`
     });
 
     const savedTicket = await newTicket.save();
@@ -46,15 +49,16 @@ router.post("/ticket", verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error("Error creating ticket:", error);
-    res.status(500).json({ message: "Server error while creating ticket." });
+    res.status(500).json({ message: "Server error while creating the ticket." });
   }
 });
 
 // Route to get all tickets for the logged-in user
-router.get("/", verifyToken, async (req, res) => {
+router.get("/ticket", verifyToken, async (req, res) => {
   try {
     const tickets = await Ticket.find({ user: req.user.id }); // Fetch tickets for the logged-in user
     res.status(200).json(tickets);
+    console.log("get ticket", tickets)
   } catch (error) {
     console.error("Error fetching tickets:", error);
     res.status(500).json({ message: "Server error while fetching tickets." });

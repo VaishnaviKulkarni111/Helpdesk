@@ -8,6 +8,7 @@ import Ticket from './user/Ticket';
 function App() {
   return (
     <div className="App">
+
       <Routes>
       <Route path="/" element={<Homepage />} />
       <Route path="/auth" element={<AuthPage />} />

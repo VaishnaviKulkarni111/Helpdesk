@@ -12,11 +12,11 @@ import reportWebVitals from './reportWebVitals';
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <AuthProvider>
-    <TicketProvider>
-  <BrowserRouter>
-  <App />
-</BrowserRouter>
-</TicketProvider>
+  <TicketProvider>
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  </TicketProvider>
 </AuthProvider>
 );
 

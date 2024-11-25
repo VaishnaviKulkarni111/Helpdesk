@@ -3,10 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import { useTicket } from "../context/TicketContext"; // Custom hook import
 import "react-toastify/dist/ReactToastify.css";
 
 const Ticket = () => {
   const navigate = useNavigate();
+  const { createTicket } = useTicket(); // Call useTicket directly
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,22 +23,12 @@ const Ticket = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch("/api/tickets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      if (response.ok) {
-        toast.success("Ticket created successfully!");
-        navigate("/user");
-      } else {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Failed to create ticket.");
-      }
+      await createTicket(formData); // Call createTicket from context
+      toast.success("Ticket created successfully!");
+      navigate("/user");
     } catch (error) {
       console.error("Error creating ticket:", error);
-      toast.error("An error occurred while creating the ticket.");
+      toast.error(error.message || "An error occurred while creating the ticket.");
     }
   };
 
@@ -94,8 +86,6 @@ const Ticket = () => {
               </Button>
             </div>
           </Form>
-
-          
         </div>
       </div>
     </div>
