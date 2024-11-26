@@ -14,23 +14,23 @@ export const TicketProvider = ({ children }) => {
 
   // Fetch all tickets
   const fetchTickets = async () => {
+    if (loading) return; // Prevent fetching if already loading
     setLoading(true);
     setError(null);
-  
+
     try {
       const { token } = auth;
-      const userId = localStorage.getItem("userId");
       const loggedIn = localStorage.getItem("loggedIn");
-  
+
       // Check if the user is logged in
       if (loggedIn === "true") {
-        const response = await fetch(`http://localhost:5000/ticket/${userId}`, {
+        const response = await fetch(`http://localhost:5000/tickets`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // Include token from context
           },
         });
-  
+
         if (response.ok) {
           const data = await response.json();
           setTickets(data); // Assuming API returns an array of tickets
@@ -52,7 +52,6 @@ export const TicketProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  
 
   const createTicket = async (ticketData) => {
     try {
@@ -82,8 +81,9 @@ export const TicketProvider = ({ children }) => {
     }
   };
 
+  // Ensure fetchTickets is only called once on mount
   useEffect(() => {
-    fetchTickets(); // Fetch tickets on component mount
+    fetchTickets();
   }, []);
 
   return (

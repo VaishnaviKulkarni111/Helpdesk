@@ -1,12 +1,11 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const Ticket = require("../models/ticketSchema");
-const User = require("../models/userSchema"); // Adjust path as necessary
 const router = express.Router();
 
 const JWT_SECRET = "hvdvay6ert72839289()aiyg8t87qt72393293883uhefiuh78ttq3ifi78272jbkj?[]]pou89ywe";
 
-// Helper function for JWT verification (directly in file)
+// Helper function for JWT verification
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -15,8 +14,9 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-   console.log("decoded in verify", decoded)
+    console.log("decoded in verify", decoded);
     req.user = decoded; // Attach the decoded user information to `req.user`
+    next(); // Ensure the request proceeds to the route handler
   } catch (error) {
     console.error("JWT verification error:", error);
     return res.status(401).json({ message: "Invalid or expired token." });
@@ -54,64 +54,44 @@ router.post("/ticket", verifyToken, async (req, res) => {
 });
 
 // Route to get all tickets for the logged-in user
-router.get("/ticket/:id", async (req, res) => {
-    const decoded = verifyToken(req, res); // Use the function to decode the token
-    if (!decoded) return; // If the token is invalid, stop further processing
-  
-    if (decoded.userType !== 'employee') {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-  
-    const userId = decoded.id; // Use 'id' from the token
-    console.log("user ID from token:", userId);
-  
-    try {
-      const tickets = await Ticket.find({ userId });
-      console.log("Fetched tickets:", tickets);
-  
-      res.status(200).json(tickets);
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      res.status(500).json({ message: "Server error while fetching tickets." });
-    }
-  });
-// Route to get a specific ticket by ID (user-specific)
-router.get("/:id", verifyToken, async (req, res) => {
+router.get("/ticket/:id", verifyToken, async (req, res) => {
+  if (req.user.userType !== 'employee') {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const userId = req.user.id; // Use 'id' from the token
+  console.log("user ID from token:", userId);
+
   try {
-    const ticket = await Ticket.findOne({ _id: req.params.id, user: req.user.id });
+    const tickets = await Ticket.find({ createdBy: userId }); // Fix field name to match schema
+    console.log("Fetched tickets:", tickets);
 
-    if (!ticket) {
-      return res.status(404).json({ message: "Ticket not found." });
-    }
-
-    res.status(200).json(ticket);
+    res.status(200).json(tickets);
   } catch (error) {
-    console.error("Error fetching ticket:", error);
-    res.status(500).json({ message: "Server error while fetching ticket." });
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ message: "Server error while fetching tickets." });
   }
 });
 
 
+
 // Admin route to get all tickets
-// Route to get all tickets (admin specific)
 router.get("/tickets", verifyToken, async (req, res) => {
-    try {
-      // Check if the user is an admin
-      if (req.user.userType === 'admin') {
-        // Admin can view all tickets
-        const tickets = await Ticket.find();
-        return res.status(200).json(tickets);
-      }
-      
-      // For non-admin users, filter by userId (if it's a normal user)
-      const tickets = await Ticket.find({ createdBy: req.user.id });
+  try {
+    console.log("Decoded user:", req.user);
+
+    if (req.user.userType === "admin") {
+      const tickets = await Ticket.find().limit(10); // Admin sees all tickets
+      console.log("tickets", tickets);
+
       return res.status(200).json(tickets);
-      
-    } catch (error) {
-      console.error("Error fetching tickets:", error);
-      res.status(500).json({ message: "Server error while fetching tickets." });
+    } else {
+      return res.status(401).json({ message: "Unauthorized" });
     }
-  });
-  
+  } catch (error) {
+    console.error("Error fetching tickets:", error);
+    res.status(500).json({ message: "Server error while fetching tickets." });
+  }
+});
 
 module.exports = router;

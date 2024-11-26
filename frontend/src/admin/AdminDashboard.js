@@ -3,13 +3,15 @@ import { useTicket } from '../context/TicketContext'; // Assuming TicketContext 
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faTicketAlt, faExclamationCircle } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faTicketAlt, faExclamationCircle, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { useNavigate } from 'react-router-dom'; // To navigate to login page after logout
 
 const AdminDashboard = () => {
   const { tickets, loading, error, fetchTickets } = useTicket();
   const [users, setUsers] = useState([]);
   const [highPriorityCount, setHighPriorityCount] = useState(0);
-  const { auth } = useAuth();
+  const { auth, logout } = useAuth();
+  const navigate = useNavigate(); // Used to redirect to login page
 
   // Fetch tickets and users
   useEffect(() => {
@@ -30,7 +32,7 @@ const AdminDashboard = () => {
       }
     };
     fetchUsers();
-  }, [fetchTickets]);
+  }, []);
 
   // Calculate high-priority tickets count
   useEffect(() => {
@@ -67,6 +69,13 @@ const AdminDashboard = () => {
     }
   };
 
+  // Handle logout
+  const handleLogout = () => {
+    logout(); // Clear the token and user data from AuthContext
+    navigate('/'); // Redirect to the login page
+    toast.success('Logged out successfully');
+  };
+
   return (
     <div
       className="container-fluid"
@@ -82,6 +91,10 @@ const AdminDashboard = () => {
           <h1 className="text-primary">
             <FontAwesomeIcon icon={faTicketAlt} /> Admin Dashboard
           </h1>
+          {/* Logout Button */}
+          <button onClick={handleLogout} className="btn btn-secondary">
+            <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+          </button>
         </div>
       </div>
 
@@ -139,16 +152,12 @@ const AdminDashboard = () => {
                 {/* Priority & Status */}
                 <div>
                   <span
-                    className={`badge me-2 ${
-                      ticket.priority === 'High' ? 'bg-danger' : ticket.priority === 'Medium' ? 'bg-warning' : 'bg-success'
-                    }`}
+                    className={`badge me-2 ${ticket.priority === 'High' ? 'bg-danger' : ticket.priority === 'Medium' ? 'bg-warning' : 'bg-success'}`}
                   >
                     {ticket.priority}
                   </span>
                   <span
-                    className={`badge ${
-                      ticket.status === 'Active' ? 'bg-primary' : ticket.status === 'Resolved' ? 'bg-success' : 'bg-warning'
-                    }`}
+                    className={`badge ${ticket.status === 'Active' ? 'bg-primary' : ticket.status === 'Resolved' ? 'bg-success' : 'bg-warning'}`}
                   >
                     {ticket.status}
                   </span>
