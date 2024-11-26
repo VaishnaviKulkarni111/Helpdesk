@@ -37,7 +37,6 @@ router.post("/ticket", verifyToken, async (req, res) => {
       description,
       priority,
       status: "Active",
-      comments: "No comments yet",
       createdBy: req.user.id, // Use `req.user` set by `verifyToken`
     });
 

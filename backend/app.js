@@ -7,6 +7,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/authRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const commentRoutes = require("./routes/commentRoutes");
+const mailRoutes = require("./routes/mailRoutes");
 
 app.use(express.json());
 app.use(cors());
@@ -32,6 +33,7 @@ mongoose
 app.use(userRoutes);
 app.use(ticketRoutes);
 app.use(commentRoutes);
+app.use(mailRoutes);
 
 app.listen(5000, () => {
   console.log("Server Started");

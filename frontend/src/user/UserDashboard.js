@@ -139,55 +139,70 @@ const UserDashboard = () => {
           </select>
         </div>
         <div className="card-body">
-          {loading ? (
-            <p>Loading tickets...</p>
-          ) : error ? (
-            <p className="text-danger">{error}</p>
-          ) : filteredTickets.length === 0 ? (
-            <p>No tickets to display.</p>
+  {loading ? (
+    <p>Loading tickets...</p>
+  ) : error ? (
+    <p className="text-danger">{error}</p>
+  ) : filteredTickets.length === 0 ? (
+    <p>No tickets to display.</p>
+  ) : (
+    filteredTickets.map((ticket) => (
+      <div
+        key={ticket._id}
+        className="p-3 mb-3 border rounded bg-white shadow-sm"
+      >
+        {/* Ticket Main Details */}
+        <div>
+          <h6 className="text-primary mb-1">{ticket.name}</h6>
+          <p className="text-muted mb-2">{ticket.description}</p>
+        </div>
+        {/* Priority & Status */}
+        <div>
+          <span
+            className={`badge me-2 ${
+              ticket.priority === "High"
+                ? "bg-danger"
+                : ticket.priority === "Medium"
+                ? "bg-warning"
+                : "bg-success"
+            }`}
+          >
+            {ticket.priority}
+          </span>
+          <span
+            className={`badge ${
+              ticket.status === "Active"
+                ? "bg-primary"
+                : ticket.status === "Resolved"
+                ? "bg-success"
+                : "bg-warning"
+            }`}
+          >
+            {ticket.status}
+          </span>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-3">
+          <strong>Comments:</strong>
+          {ticket.comments.length === 0 ? (
+            <p>No comments yet.</p>
           ) : (
-            filteredTickets.map((ticket) => (
-              <div
-                key={ticket._id}
-                className="p-3 mb-3 border rounded bg-white shadow-sm"
-              >
-                {/* Ticket Main Details */}
-                <div>
-                  <h6 className="text-primary mb-1">{ticket.name}</h6>
-                  <p className="text-muted mb-2">{ticket.description}</p>
-                </div>
-                {/* Priority & Status */}
-                <div>
-                  <span
-                    className={`badge me-2 ${
-                      ticket.priority === "High"
-                        ? "bg-danger"
-                        : ticket.priority === "Medium"
-                        ? "bg-warning"
-                        : "bg-success"
-                    }`}
-                  >
-                    {ticket.priority}
-                  </span>
-                  <span
-                    className={`badge ${
-                      ticket.status === "Active"
-                        ? "bg-primary"
-                        : ticket.status === "Resolved"
-                        ? "bg-success"
-                        : "bg-warning"
-                    }`}
-                  >
-                    {ticket.status}
-                  </span>
-                  <p className="text-muted mb-2">
-                    <strong>Comments:</strong> {ticket.comments}
-                  </p>
-                </div>
+            ticket.comments.map((comment) => (
+              <div key={comment._id} className="mb-2">
+               <p>
+  {comment.text} <small className="text-muted ms-2">{new Date(comment.date).toLocaleString()}</small>
+</p>
+
               </div>
             ))
           )}
         </div>
+      </div>
+    ))
+  )}
+</div>
+
       </div>
     </div>
   );
