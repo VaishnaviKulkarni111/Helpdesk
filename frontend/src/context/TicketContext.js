@@ -1,41 +1,93 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "./AuthContext";
 
 // Create the context
 const TicketContext = createContext();
 
-// Create a provider component   
+// Create a provider component
 export const TicketProvider = ({ children }) => {
-    const createTicket = async (ticketData) => {
-        try {
-          const token = localStorage.getItem("token"); // Retrieve token from storage
-          const response = await fetch("http://localhost:5000/ticket", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`, // Include token in the Authorization header
-            },
-            body: JSON.stringify(ticketData),
-          });
-      
-          if (response.ok) {
-            toast.success("Ticket created successfully!");
-            return true;
-          } else {
-            const errorData = await response.json();
-            toast.error(errorData.message || "Failed to create ticket.");
-            return false;
-          }
-        } catch (error) {
-          console.error("Error creating ticket:", error);
-          toast.error("An error occurred while creating the ticket.");
-          return false;
+  const { auth } = useAuth(); // Access the auth context here
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch all tickets
+  const fetchTickets = async () => {
+    setLoading(true);
+    setError(null);
+  
+    try {
+      const { token } = auth;
+      const userId = localStorage.getItem("userId");
+      const loggedIn = localStorage.getItem("loggedIn");
+  
+      // Check if the user is logged in
+      if (loggedIn === "true") {
+        const response = await fetch(`http://localhost:5000/ticket/${userId}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token from context
+          },
+        });
+  
+        if (response.ok) {
+          const data = await response.json();
+          setTickets(data); // Assuming API returns an array of tickets
+          console.log("ticket show", data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.message || "Failed to fetch tickets.");
+          toast.error(errorData.message || "Failed to fetch tickets.");
         }
-      };
-      
+      } else {
+        toast.error("You are not logged in. Please log in first.");
+        setError("You are not logged in.");
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setError("An error occurred while fetching tickets.");
+      toast.error("An error occurred while fetching tickets.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  const createTicket = async (ticketData) => {
+    try {
+      const token = auth.token; // Retrieve token from context
+      const response = await fetch("http://localhost:5000/ticket", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // Include token in the Authorization header
+        },
+        body: JSON.stringify(ticketData),
+      });
+
+      if (response.ok) {
+        toast.success("Ticket created successfully!");
+        await fetchTickets(); // Refresh tickets after creation
+        return true;
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Failed to create ticket.");
+        return false;
+      }
+    } catch (error) {
+      console.error("Error creating ticket:", error);
+      toast.error("An error occurred while creating the ticket.");
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets(); // Fetch tickets on component mount
+  }, []);
 
   return (
-    <TicketContext.Provider value={{ createTicket }}>
+    <TicketContext.Provider value={{ tickets, loading, error, createTicket, fetchTickets }}>
       {children}
     </TicketContext.Provider>
   );

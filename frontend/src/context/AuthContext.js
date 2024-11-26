@@ -10,6 +10,8 @@ export const AuthProvider = ({ children }) => {
   const [auth, setAuth] = useState({
     token: localStorage.getItem("token") || null,
     userType: localStorage.getItem("userType") || null,
+    userId: localStorage.getItem("userId") || null,
+    loggedIn: localStorage.getItem("loggedIn") === "true", // Added loggedIn state
   });
 
   // Login function
@@ -21,13 +23,14 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (data.status === "ok") {
-        setAuth({
-          token: data.data.token,
-          userType: data.data.userType,
-        });
+        const { token, userType, userId } = data.data;
+         console.log(data) 
+        setAuth({ token, userType, userId, loggedIn: true }); // Update state with loggedIn
+        localStorage.setItem("token", token);
+        localStorage.setItem("userType", userType);
+        localStorage.setItem("userId", userId);
+        localStorage.setItem("loggedIn", "true"); // Set loggedIn to true
 
-        localStorage.setItem("token", data.data.token);
-        localStorage.setItem("userType", data.data.userType);
         toast.success("Login successful!");
       }
     } catch (error) {
@@ -59,13 +62,11 @@ export const AuthProvider = ({ children }) => {
 
   // Logout function
   const logout = () => {
-    setAuth({
-      token: null,
-      userType: null,
-    });
-
+    setAuth({ token: null, userType: null, userId: null, loggedIn: false });
     localStorage.removeItem("token");
     localStorage.removeItem("userType");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("loggedIn"); // Remove loggedIn from localStorage
     toast.info("Logged out successfully.");
   };
 

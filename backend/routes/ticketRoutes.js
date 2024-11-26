@@ -15,8 +15,8 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+  //  console.log("decoded", decoded)
     req.user = decoded; // Attach the decoded user information to `req.user`
-    next(); // Proceed to the next middleware/handler
   } catch (error) {
     console.error("JWT verification error:", error);
     return res.status(401).json({ message: "Invalid or expired token." });
@@ -54,17 +54,27 @@ router.post("/ticket", verifyToken, async (req, res) => {
 });
 
 // Route to get all tickets for the logged-in user
-router.get("/ticket", verifyToken, async (req, res) => {
-  try {
-    const tickets = await Ticket.find({ user: req.user.id }); // Fetch tickets for the logged-in user
-    res.status(200).json(tickets);
-    console.log("get ticket", tickets)
-  } catch (error) {
-    console.error("Error fetching tickets:", error);
-    res.status(500).json({ message: "Server error while fetching tickets." });
-  }
-});
-
+router.get("/ticket/:id", async (req, res) => {
+    const decoded = verifyToken(req, res); // Use the function to decode the token
+    if (!decoded) return; // If the token is invalid, stop further processing
+  
+    if (decoded.userType !== 'employee') {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+  
+    const userId = decoded.id; // Use 'id' from the token
+    console.log("user ID from token:", userId);
+  
+    try {
+      const tickets = await Ticket.find({ userId });
+      console.log("Fetched tickets:", tickets);
+  
+      res.status(200).json(tickets);
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      res.status(500).json({ message: "Server error while fetching tickets." });
+    }
+  });
 // Route to get a specific ticket by ID (user-specific)
 router.get("/:id", verifyToken, async (req, res) => {
   try {
@@ -81,51 +91,6 @@ router.get("/:id", verifyToken, async (req, res) => {
   }
 });
 
-// Route to update a ticket (user-specific)
-router.put("/:id", verifyToken, async (req, res) => {
-  const { name, description, priority, status, comments } = req.body;
 
-  try {
-    const updatedTicket = await Ticket.findOneAndUpdate(
-      { _id: req.params.id, user: req.user.id },
-      { name, description, priority, status, comments },
-      { new: true } // Return the updated document
-    );
-
-    if (!updatedTicket) {
-      return res.status(404).json({ message: "Ticket not found." });
-    }
-
-    res.status(200).json({
-      message: "Ticket updated successfully",
-      ticket: updatedTicket,
-    });
-  } catch (error) {
-    console.error("Error updating ticket:", error);
-    res.status(500).json({ message: "Server error while updating ticket." });
-  }
-});
-
-// Route to delete a ticket (user-specific)
-router.delete("/:id", verifyToken, async (req, res) => {
-  try {
-    const deletedTicket = await Ticket.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user.id,
-    });
-
-    if (!deletedTicket) {
-      return res.status(404).json({ message: "Ticket not found." });
-    }
-
-    res.status(200).json({
-      message: "Ticket deleted successfully",
-      ticket: deletedTicket,
-    });
-  } catch (error) {
-    console.error("Error deleting ticket:", error);
-    res.status(500).json({ message: "Server error while deleting ticket." });
-  }
-});
 
 module.exports = router;

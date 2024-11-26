@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useTicket } from "../context/TicketContext";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -12,38 +13,15 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const UserDashboard = () => {
+  const { tickets, fetchTickets, loading, error } = useTicket();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState("all");
 
-  // Dummy ticket data
-  const tickets = [
-    {
-      id: 1,
-      name: "Unable to Login",
-      description: "User cannot log in using their email credentials.",
-      priority: "High",
-      status: "Active",
-      comments: "Looking into it.",
-    },
-    {
-      id: 2,
-      name: "Feature Request",
-      description: "Requesting a dark mode feature for the platform.",
-      priority: "Low",
-      status: "Resolved",
-      comments: "Feature added in the latest update.",
-    },
-    {
-      id: 3,
-      name: "Bug in Dashboard",
-      description: "Dashboard throws a 500 error on load.",
-      priority: "Medium",
-      status: "Pending",
-      comments: "No comments yet.",
-    },
-  ];
+  useEffect(() => {
+    fetchTickets(); // Fetch tickets on component mount
+  }, []);
 
   // Filter logic
   const filteredTickets =
@@ -83,8 +61,9 @@ const UserDashboard = () => {
       >
         <div className="d-flex justify-content-between align-items-center">
           <h1 className="text-primary">
-          <FontAwesomeIcon icon={faHeadset} />
-              Helpdesk Dashboard</h1>
+            <FontAwesomeIcon icon={faHeadset} />
+            Helpdesk Dashboard
+          </h1>
           <div>
             <button
               className="btn btn-primary me-2"
@@ -160,47 +139,54 @@ const UserDashboard = () => {
           </select>
         </div>
         <div className="card-body">
-          {filteredTickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="p-3 mb-3 border rounded bg-white shadow-sm"
-            >
-              {/* Ticket Main Details */}
-              <div>
-                <h6 className="text-primary mb-1">{ticket.name}</h6>
-                <p className="text-muted mb-2">{ticket.description}</p>
-                
+          {loading ? (
+            <p>Loading tickets...</p>
+          ) : error ? (
+            <p className="text-danger">{error}</p>
+          ) : filteredTickets.length === 0 ? (
+            <p>No tickets to display.</p>
+          ) : (
+            filteredTickets.map((ticket) => (
+              <div
+                key={ticket._id}
+                className="p-3 mb-3 border rounded bg-white shadow-sm"
+              >
+                {/* Ticket Main Details */}
+                <div>
+                  <h6 className="text-primary mb-1">{ticket.name}</h6>
+                  <p className="text-muted mb-2">{ticket.description}</p>
+                </div>
+                {/* Priority & Status */}
+                <div>
+                  <span
+                    className={`badge me-2 ${
+                      ticket.priority === "High"
+                        ? "bg-danger"
+                        : ticket.priority === "Medium"
+                        ? "bg-warning"
+                        : "bg-success"
+                    }`}
+                  >
+                    {ticket.priority}
+                  </span>
+                  <span
+                    className={`badge ${
+                      ticket.status === "Active"
+                        ? "bg-primary"
+                        : ticket.status === "Resolved"
+                        ? "bg-success"
+                        : "bg-warning"
+                    }`}
+                  >
+                    {ticket.status}
+                  </span>
+                  <p className="text-muted mb-2">
+                    <strong>Comments:</strong> {ticket.comments}
+                  </p>
+                </div>
               </div>
-              {/* Priority & Status */}
-              <div>
-                <span
-                  className={`badge me-2 ${
-                    ticket.priority === "High"
-                      ? "bg-danger"
-                      : ticket.priority === "Medium"
-                      ? "bg-warning"
-                      : "bg-success"
-                  }`}
-                >
-                  {ticket.priority}
-                </span>
-                <span
-                  className={`badge ${
-                    ticket.status === "Active"
-                      ? "bg-primary"
-                      : ticket.status === "Resolved"
-                      ? "bg-success"
-                      : "bg-warning"
-                  }`}
-                >
-                  {ticket.status}
-                </span>
-                <p className="text-muted mb-2">
-                  <strong>Comments:</strong> {ticket.comments}
-                </p>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

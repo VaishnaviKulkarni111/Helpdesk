@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const AuthPage = () => {
@@ -9,10 +10,11 @@ const AuthPage = () => {
     fname: "",
     email: "",
     password: "",
-    userType: "user",
+    userType: "", 
   });
 
   const { login, register } = useAuth();
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
@@ -25,15 +27,30 @@ const AuthPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLogin) {
-      await login(formData.email, formData.password);
-    } else {
-      await register(
-        formData.fname,
-        formData.email,
-        formData.password,
-        formData.userType
-      );
+    const userType = localStorage.getItem("userType")
+    try {
+      if (isLogin) {
+        await login(formData.email, formData.password);
+                if (userType === "admin") {
+          navigate("/admin");
+        } else if (userType === "user") {
+          navigate("/user");
+        } else {
+          toast.error("Invalid user type.");
+        }
+      } else {
+        // Handle Registration
+        await register(
+          formData.fname,
+          formData.email,
+          formData.password,
+          formData.userType
+        );
+        toast.success("Registration successful! Please login.");
+        toggleMode(); // Switch to login mode after registration
+      }
+    } catch (error) {
+      toast.error("Error: " + (error.message || "Failed to authenticate."));
     }
   };
 
@@ -42,86 +59,77 @@ const AuthPage = () => {
       <ToastContainer />
       <div
         className="card shadow-lg"
-        style={{ maxWidth: "500px", width: "100%" }}
+        style={{ maxWidth: "400px", width: "100%" }}
       >
         <div className="card-header bg-primary text-white text-center">
           <h2>{isLogin ? "Login" : "Register"}</h2>
         </div>
         <div className="card-body">
           <form onSubmit={handleSubmit}>
-            {/* Full Name input for Register only */}
             {!isLogin && (
               <div className="mb-3">
-                <label className="form-label" htmlFor="fname">
+                <label className="form-label" style={{ display: "block" }}>
                   Full Name
                 </label>
                 <input
                   type="text"
                   className="form-control"
                   name="fname"
-                  id="fname"
                   value={formData.fname}
                   onChange={handleInputChange}
                   placeholder="Enter your full name"
                   required
+                  style={{ width: "95%", margin: "auto" }}
                 />
               </div>
             )}
-
-            {/* Email input */}
             <div className="mb-3">
-              <label className="form-label" htmlFor="email">
+              <label className="form-label" style={{ display: "block" }}>
                 Email
               </label>
               <input
                 type="email"
                 className="form-control"
                 name="email"
-                id="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Enter your email"
                 required
+                style={{ width: "95%", margin: "auto" }}
               />
             </div>
-
-            {/* Password input */}
             <div className="mb-3">
-              <label className="form-label" htmlFor="password">
+              <label className="form-label" style={{ display: "block" }}>
                 Password
               </label>
               <input
                 type="password"
                 className="form-control"
                 name="password"
-                id="password"
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Enter your password"
                 required
+                style={{ width: "95%", margin: "auto" }}
               />
             </div>
-
-            {/* User Type selection for Register only */}
             {!isLogin && (
               <div className="mb-3">
-                <label className="form-label" htmlFor="userType">
+                <label className="form-label" style={{ display: "block" }}>
                   User Type
                 </label>
                 <select
                   className="form-control"
                   name="userType"
-                  id="userType"
                   value={formData.userType}
                   onChange={handleInputChange}
+                  style={{ width: "95%", margin: "auto" }}
                 >
                   <option value="user">User</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
             )}
-
-            {/* Submit Button */}
             <div className="text-center">
               <button
                 type="submit"
@@ -133,8 +141,6 @@ const AuthPage = () => {
             </div>
           </form>
         </div>
-
-        {/* Footer with Toggle between Login/Register */}
         <div className="card-footer text-center">
           <small className="text-muted">
             {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
