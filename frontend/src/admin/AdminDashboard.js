@@ -44,6 +44,7 @@ const AdminDashboard = () => {
 
   // Handle adding a comment
   const handleAddComment = async (ticketId) => {
+    navigate("/modal")
     const comment = prompt('Enter your comment:');
     if (comment) {
       try {

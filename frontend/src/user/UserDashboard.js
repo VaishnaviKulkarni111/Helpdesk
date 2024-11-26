@@ -13,14 +13,14 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const UserDashboard = () => {
-  const { tickets, fetchTickets, loading, error } = useTicket();
+  const { tickets, fetchUserTickets, loading, error } = useTicket();
   const { logout } = useAuth();
   const navigate = useNavigate();
 
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetchTickets(); // Fetch tickets on component mount
+    fetchUserTickets(); // Fetch tickets on component mount
   }, []);
 
   // Filter logic

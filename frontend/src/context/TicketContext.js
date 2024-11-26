@@ -21,10 +21,53 @@ export const TicketProvider = ({ children }) => {
     try {
       const { token } = auth;
       const loggedIn = localStorage.getItem("loggedIn");
+      const userType = localStorage.getItem("userType");
 
       // Check if the user is logged in
-      if (loggedIn === "true") {
+      if (loggedIn === "true" && userType === "admin") {
         const response = await fetch(`http://localhost:5000/tickets`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`, // Include token from context
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTickets(data); // Assuming API returns an array of tickets
+          console.log("ticket show", data);
+        } else {
+          const errorData = await response.json();
+          setError(errorData.message || "Failed to fetch tickets.");
+          toast.error(errorData.message || "Failed to fetch tickets.");
+        }
+      } else {
+        toast.error("You are not logged in. Please log in first.");
+        setError("You are not logged in.");
+      }
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      setError("An error occurred while fetching tickets.");
+      toast.error("An error occurred while fetching tickets.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserTickets = async () => {
+    if (loading) return; // Prevent fetching if already loading
+    setLoading(true);
+    setError(null);
+
+    try {
+      const { token } = auth;
+      const loggedIn = localStorage.getItem("loggedIn");
+      const userType = localStorage.getItem("userType");
+      const userId = localStorage.getItem("userId");
+
+      // Check if the user is logged in
+      if (loggedIn === "true" && userType === "user") {
+        const response = await fetch(`http://localhost:5000/ticket/${userId}`, {
           method: "GET",
           headers: {
             Authorization: `Bearer ${token}`, // Include token from context
@@ -87,7 +130,7 @@ export const TicketProvider = ({ children }) => {
   }, []);
 
   return (
-    <TicketContext.Provider value={{ tickets, loading, error, createTicket, fetchTickets }}>
+    <TicketContext.Provider value={{ tickets, loading, error, createTicket, fetchTickets, fetchUserTickets }}>
       {children}
     </TicketContext.Provider>
   );

@@ -55,7 +55,7 @@ router.post("/ticket", verifyToken, async (req, res) => {
 
 // Route to get all tickets for the logged-in user
 router.get("/ticket/:id", verifyToken, async (req, res) => {
-  if (req.user.userType !== 'employee') {
+  if (req.user.userType !== 'user') {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
