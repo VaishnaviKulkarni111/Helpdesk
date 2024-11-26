@@ -124,13 +124,79 @@ export const TicketProvider = ({ children }) => {
     }
   };
 
+  // Add a comment to a ticket
+  const addComment = async (ticketId, comment) => {
+    if (!comment || comment.trim() === '') {
+      toast.error('Comment cannot be empty.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/addComment/${ticketId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ comment }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Comment added successfully.');
+        fetchTickets(); // Refresh tickets
+      } else {
+        toast.error(data.message || 'Failed to add comment.');
+      }
+    } catch (err) {
+      console.error('Error adding comment:', err);
+      toast.error('An error occurred while adding the comment.');
+    }
+  };
+
+  // Update the status of a ticket
+  const updateStatus = async (ticketId, status) => {
+    const allowedStatuses = ['Active', 'Pending', 'Resolved'];
+    if (!allowedStatuses.includes(status)) {
+      toast.error('Invalid status.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:5000/updateStatus/${ticketId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('Status updated successfully.');
+        fetchTickets(); // Refresh tickets
+      } else {
+        toast.error(data.message || 'Failed to update status.');
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+      toast.error('An error occurred while updating the status.');
+    }
+  };
+
   // Ensure fetchTickets is only called once on mount
   useEffect(() => {
     fetchTickets();
   }, []);
 
   return (
-    <TicketContext.Provider value={{ tickets, loading, error, createTicket, fetchTickets, fetchUserTickets }}>
+    <TicketContext.Provider value={{ tickets, 
+    loading,
+     error, 
+     createTicket, 
+     fetchTickets,
+      fetchUserTickets ,
+      addComment,
+      updateStatus}}>
       {children}
     </TicketContext.Provider>
   );

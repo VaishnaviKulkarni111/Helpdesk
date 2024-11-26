@@ -1,23 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { useTicket } from '../context/TicketContext'; // Assuming TicketContext is being used for fetching tickets
+import { useTicket } from '../context/TicketContext';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faTicketAlt, faExclamationCircle, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom'; // To navigate to login page after logout
+import { useNavigate } from 'react-router-dom';
+import { Modal, Button, Form } from 'react-bootstrap';
 
 const AdminDashboard = () => {
-  const { tickets, loading, error, fetchTickets } = useTicket();
+  const { tickets, loading, error, fetchTickets, addComment, updateStatus } = useTicket(); // Updated to use context
   const [users, setUsers] = useState([]);
   const [highPriorityCount, setHighPriorityCount] = useState(0);
   const { auth, logout } = useAuth();
-  const navigate = useNavigate(); // Used to redirect to login page
+  const navigate = useNavigate();
+
+  const [showCommentModal, setShowCommentModal] = useState(false);
+  const [selectedTicketId, setSelectedTicketId] = useState(null);
+  const [commentText, setCommentText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
 
   // Fetch tickets and users
   useEffect(() => {
-    fetchTickets(); // Fetch all tickets
-
-    // Fetch users
+    fetchTickets();
     const fetchUsers = async () => {
       try {
         const response = await fetch('http://localhost:5000/getAllUser', {
@@ -37,43 +41,50 @@ const AdminDashboard = () => {
   // Calculate high-priority tickets count
   useEffect(() => {
     if (tickets) {
-      const highPriority = tickets.filter(ticket => ticket.priority === 'High').length;
+      const highPriority = tickets.filter((ticket) => ticket.priority === 'High').length;
       setHighPriorityCount(highPriority);
     }
   }, [tickets]);
 
-  // Handle adding a comment
-  const handleAddComment = async (ticketId) => {
-    navigate("/modal")
-    const comment = prompt('Enter your comment:');
-    if (comment) {
-      try {
-        const response = await fetch(`http://localhost:5000/ticket/${ticketId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${auth.token}`,
-          },
-          body: JSON.stringify({ comment }),
-        });
-        const data = await response.json();
-        if (response.ok) {
-          toast.success('Comment added successfully!');
-          fetchTickets(); // Refresh tickets after adding the comment
-        } else {
-          toast.error(data.message || 'Failed to add comment');
-        }
-      } catch (err) {
-        console.error('Error adding comment:', err);
-        toast.error('An error occurred while adding the comment.');
-      }
+  // Open modal for adding a comment
+  const handleOpenCommentModal = (ticketId) => {
+    setSelectedTicketId(ticketId);
+    setShowCommentModal(true);
+  };
+
+  // Add a comment using context
+  const handleAddComment = async () => {
+    if (!commentText.trim()) {
+      toast.error('Comment cannot be empty.');
+      return;
+    }
+
+    try {
+      await addComment(selectedTicketId, commentText); // Call context function
+      toast.success('Comment added successfully!');
+      setShowCommentModal(false);
+      setCommentText('');
+    } catch (err) {
+      toast.error('Failed to add comment.');
+      console.error(err);
+    }
+  };
+
+  // Update ticket status
+  const handleUpdateStatus = async (ticketId, newStatus) => {
+    try {
+      await updateStatus(ticketId, newStatus); // Call context function
+      toast.success(`Status updated to ${newStatus}`);
+    } catch (err) {
+      toast.error('Failed to update status.');
+      console.error(err);
     }
   };
 
   // Handle logout
   const handleLogout = () => {
-    logout(); // Clear the token and user data from AuthContext
-    navigate('/'); // Redirect to the login page
+    logout();
+    navigate('/');
     toast.success('Logged out successfully');
   };
 
@@ -83,7 +94,7 @@ const AdminDashboard = () => {
       style={{
         backgroundColor: '#F0F0F0',
         minHeight: '100vh',
-        padding: '30px 120px', // More space left and right
+        padding: '30px 120px',
       }}
     >
       {/* Header Section */}
@@ -92,7 +103,6 @@ const AdminDashboard = () => {
           <h1 className="text-primary">
             <FontAwesomeIcon icon={faTicketAlt} /> Admin Dashboard
           </h1>
-          {/* Logout Button */}
           <button onClick={handleLogout} className="btn btn-secondary">
             <FontAwesomeIcon icon={faSignOutAlt} /> Logout
           </button>
@@ -145,12 +155,10 @@ const AdminDashboard = () => {
           ) : (
             tickets.map((ticket) => (
               <div key={ticket._id} className="p-3 mb-3 border rounded bg-white shadow-sm">
-                {/* Ticket Main Details */}
                 <div>
                   <h6 className="text-primary mb-1">{ticket.name}</h6>
                   <p className="text-muted mb-2">{ticket.description}</p>
                 </div>
-                {/* Priority & Status */}
                 <div>
                   <span
                     className={`badge me-2 ${ticket.priority === 'High' ? 'bg-danger' : ticket.priority === 'Medium' ? 'bg-warning' : 'bg-success'}`}
@@ -163,18 +171,62 @@ const AdminDashboard = () => {
                     {ticket.status}
                   </span>
                   <p className="text-muted mb-2">
-                    <strong>Comments:</strong> {ticket.comments}
+                    <strong>Comments:</strong>{' '}
+                    {Array.isArray(ticket.comments) ? (
+                      ticket.comments.length > 0 ? (
+                        ticket.comments.map((comment, index) => (
+                          <span key={index} className="d-block">
+                            {comment.text} (on {new Date(comment.date).toLocaleString()})
+                          </span>
+                        ))
+                      ) : (
+                        <span>No comments yet.</span>
+                      )
+                    ) : (
+                      <span>{ticket.comments?.text || 'No comments available.'}</span>
+                    )}
                   </p>
                 </div>
-                {/* Button for adding comment */}
-                <button onClick={() => handleAddComment(ticket._id)} className="btn btn-info btn-sm mt-2">
+                <button onClick={() => handleOpenCommentModal(ticket._id)} className="btn btn-info btn-sm mt-2">
                   Add Comment
+                </button>
+                <button
+                  onClick={() => handleUpdateStatus(ticket._id, ticket.status === 'Active' ? 'Resolved' : 'Active')}
+                  className="btn btn-secondary btn-sm mt-2 ms-2"
+                >
+                  {ticket.status === 'Active' ? 'Mark Resolved' : 'Reopen'}
                 </button>
               </div>
             ))
           )}
         </div>
       </div>
+
+      {/* Add Comment Modal */}
+      <Modal show={showCommentModal} onHide={() => setShowCommentModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Comment</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form.Group>
+            <Form.Label>Comment</Form.Label>
+            <Form.Control
+              type="text"
+              placeholder="Enter your comment"
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+            />
+          </Form.Group>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCommentModal(false)}>
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleAddComment}>
+            Save Comment
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
