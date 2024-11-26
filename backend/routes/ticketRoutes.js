@@ -15,7 +15,7 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-  //  console.log("decoded", decoded)
+   console.log("decoded in verify", decoded)
     req.user = decoded; // Attach the decoded user information to `req.user`
   } catch (error) {
     console.error("JWT verification error:", error);
@@ -92,5 +92,26 @@ router.get("/:id", verifyToken, async (req, res) => {
 });
 
 
+// Admin route to get all tickets
+// Route to get all tickets (admin specific)
+router.get("/tickets", verifyToken, async (req, res) => {
+    try {
+      // Check if the user is an admin
+      if (req.user.userType === 'admin') {
+        // Admin can view all tickets
+        const tickets = await Ticket.find();
+        return res.status(200).json(tickets);
+      }
+      
+      // For non-admin users, filter by userId (if it's a normal user)
+      const tickets = await Ticket.find({ createdBy: req.user.id });
+      return res.status(200).json(tickets);
+      
+    } catch (error) {
+      console.error("Error fetching tickets:", error);
+      res.status(500).json({ message: "Server error while fetching tickets." });
+    }
+  });
+  
 
 module.exports = router;
