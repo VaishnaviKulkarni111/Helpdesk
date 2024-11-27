@@ -51,7 +51,7 @@ const UserDashboard = () => {
       style={{
         backgroundColor: "#F0F0F0",
         minHeight: "100vh",
-        padding: "30px 100px", // More space left and right
+        padding: "30px 130px", // More space left and right
       }}
     >
       {/* Header Section */}
@@ -150,14 +150,24 @@ const UserDashboard = () => {
       <div
         key={ticket._id}
         className="p-3 mb-3 border rounded bg-white shadow-sm"
+        style={{ position: 'relative' }}  // Position relative to this card
       >
         {/* Ticket Main Details */}
         <div>
           <h6 className="text-primary mb-1">{ticket.name}</h6>
           <p className="text-muted mb-2">{ticket.description}</p>
         </div>
-        {/* Priority & Status */}
-        <div>
+
+        {/* Priority & Status on Top Right of each ticket */}
+        <div
+          className="d-flex"
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            zIndex: 10,  // Ensure it's on top of other content
+          }}
+        >
           <span
             className={`badge me-2 ${
               ticket.priority === "High"
@@ -190,10 +200,12 @@ const UserDashboard = () => {
           ) : (
             ticket.comments.map((comment) => (
               <div key={comment._id} className="mb-2">
-               <p>
-  {comment.text} <small className="text-muted ms-2">{new Date(comment.date).toLocaleString()}</small>
-</p>
-
+                <p>
+                  {comment.text}{" "}
+                  <small className="text-muted ms-2">
+                    {new Date(comment.date).toLocaleString()}
+                  </small>
+                </p>
               </div>
             ))
           )}

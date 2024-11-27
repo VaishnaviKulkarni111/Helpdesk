@@ -1,21 +1,21 @@
 require('dotenv').config(); 
 const express = require("express");
-
 const router = express.Router();
 const nodemailer = require('nodemailer');
 const Ticket = require('../models/ticketSchema');  // Assuming you have a Ticket model
 const User = require('../models/userSchema');    // Assuming you have a User model
 
-
-
 // Setup Nodemailer transport
 const transporter = nodemailer.createTransport({
-  service: 'gmail',  // Change to your email provider if different
+  service: 'gmail',  // You can change to another email service if needed
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: process.env.EMAIL_USER, // Your email
+    pass: process.env.EMAIL_PASS, // Your email password or app-specific password
   },
-});
+}); 
+console.log("Email User:", process.env.EMAIL_USER);
+console.log("Email Pass:", process.env.EMAIL_PASS);
+
 
 // POST route to add a comment to a ticket
 router.post('/tickets/:ticketId/comments', async (req, res) => {
@@ -45,7 +45,7 @@ router.post('/tickets/:ticketId/comments', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Send email notification to the user
+    // Send email notification to the user about the comment
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: user.email,
@@ -55,7 +55,7 @@ router.post('/tickets/:ticketId/comments', async (req, res) => {
         <p>There has been an update on your ticket: <strong>${ticket.name}</strong></p>
         <p><strong>New comment:</strong></p>
         <p>${text}</p>
-        <p>Best regards, <br> Helpdesk Team</p>
+        <p>Best regards,<br> Helpdesk Team</p>
       `,
     };
 
@@ -68,6 +68,7 @@ router.post('/tickets/:ticketId/comments', async (req, res) => {
       }
     });
 
+    // Return a response with the updated ticket
     res.status(200).json({ message: 'Comment added and email sent', ticket });
 
   } catch (error) {

@@ -81,7 +81,7 @@ router.get("/tickets", verifyToken, async (req, res) => {
 
     if (req.user.userType === "admin") {
       const tickets = await Ticket.find().limit(10); // Admin sees all tickets
-      console.log("tickets", tickets);
+     // console.log("tickets", tickets);
 
       return res.status(200).json(tickets);
     } else {

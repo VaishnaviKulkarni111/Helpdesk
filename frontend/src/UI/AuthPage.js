@@ -35,9 +35,7 @@ const AuthPage = () => {
           navigate("/admin");
         } else if (userType === "user") {
           navigate("/user");
-        } else {
-          toast.error("Invalid user type.");
-        }
+        } 
       } else {
         // Handle Registration
         await register(

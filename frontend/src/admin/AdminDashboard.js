@@ -146,60 +146,92 @@ const AdminDashboard = () => {
           <h5 className="m-0">Tickets Overview</h5>
         </div>
         <div className="card-body">
-          {loading ? (
-            <p>Loading tickets...</p>
-          ) : error ? (
-            <p className="text-danger">{error}</p>
-          ) : tickets.length === 0 ? (
-            <p>No tickets to display.</p>
-          ) : (
-            tickets.map((ticket) => (
-              <div key={ticket._id} className="p-3 mb-3 border rounded bg-white shadow-sm">
-                <div>
-                  <h6 className="text-primary mb-1">{ticket.name}</h6>
-                  <p className="text-muted mb-2">{ticket.description}</p>
-                </div>
-                <div>
-                  <span
-                    className={`badge me-2 ${ticket.priority === 'High' ? 'bg-danger' : ticket.priority === 'Medium' ? 'bg-warning' : 'bg-success'}`}
-                  >
-                    {ticket.priority}
-                  </span>
-                  <span
-                    className={`badge ${ticket.status === 'Active' ? 'bg-primary' : ticket.status === 'Resolved' ? 'bg-success' : 'bg-warning'}`}
-                  >
-                    {ticket.status}
-                  </span>
-                  <p className="text-muted mb-2">
-                    <strong>Comments:</strong>{' '}
-                    {Array.isArray(ticket.comments) ? (
-                      ticket.comments.length > 0 ? (
-                        ticket.comments.map((comment, index) => (
-                          <span key={index} className="d-block">
-                            {comment.text} (on {new Date(comment.date).toLocaleString()})
-                          </span>
-                        ))
-                      ) : (
-                        <span>No comments yet.</span>
-                      )
-                    ) : (
-                      <span>{ticket.comments?.text || 'No comments available.'}</span>
-                    )}
-                  </p>
-                </div>
-                <button onClick={() => handleOpenCommentModal(ticket._id)} className="btn btn-info btn-sm mt-2">
-                  Add Comment
-                </button>
-                <button
-                  onClick={() => handleUpdateStatus(ticket._id, ticket.status === 'Active' ? 'Resolved' : 'Active')}
-                  className="btn btn-secondary btn-sm mt-2 ms-2"
-                >
-                  {ticket.status === 'Active' ? 'Mark Resolved' : 'Reopen'}
-                </button>
-              </div>
-            ))
-          )}
+  {loading ? (
+    <p>Loading tickets...</p>
+  ) : error ? (
+    <p className="text-danger">{error}</p>
+  ) : tickets.length === 0 ? (
+    <p>No tickets to display.</p>
+  ) : (
+    tickets.map((ticket) => (
+      <div
+        key={ticket._id}
+        className="p-3 mb-3 border rounded bg-white shadow-sm"
+        style={{ position: 'relative' }}  // Ensure the badges are positioned relative to this card
+      >
+        {/* Ticket Main Details */}
+        <div>
+          <h6 className="text-primary mb-1">{ticket.name}</h6>
+          <p className="text-muted mb-2">{ticket.description}</p>
         </div>
+
+        {/* Priority & Status on Top Right of each ticket */}
+        <div
+          className="d-flex"
+          style={{
+            position: 'absolute',
+            top: '25px',
+            right: '25px',
+            zIndex: 10,  // Ensure it's on top of other content
+          }}
+        >
+          <span
+            className={`badge me-2 ${
+              ticket.priority === 'High'
+                ? 'bg-danger'
+                : ticket.priority === 'Medium'
+                ? 'bg-warning'
+                : 'bg-success'
+            }`}
+          >
+            {ticket.priority}
+          </span>
+          <span
+            className={`badge ${
+              ticket.status === 'Active'
+                ? 'bg-primary'
+                : ticket.status === 'Resolved'
+                ? 'bg-success'
+                : 'bg-warning'
+            }`}
+          >
+            {ticket.status}
+          </span>
+        </div>
+
+        {/* Comments Section */}
+        <p className="text-muted mb-2">
+          <strong>Comments:</strong>{' '}
+          {Array.isArray(ticket.comments) ? (
+            ticket.comments.length > 0 ? (
+              ticket.comments.map((comment, index) => (
+                <span key={index} className="d-block">
+                  {comment.text} (on {new Date(comment.date).toLocaleString()})
+                </span>
+              ))
+            ) : (
+              <span>No comments yet.</span>
+            )
+          ) : (
+            <span>{ticket.comments?.text || 'No comments available.'}</span>
+          )}
+        </p>
+
+        {/* Action Buttons */}
+        <button onClick={() => handleOpenCommentModal(ticket._id)} className="btn btn-info btn-sm mt-2">
+          Add Comment
+        </button>
+        <button
+          onClick={() => handleUpdateStatus(ticket._id, ticket.status === 'Active' ? 'Resolved' : 'Active')}
+          className="btn btn-secondary btn-sm mt-2 ms-2"
+        >
+          {ticket.status === 'Active' ? 'Mark Resolved' : 'Reopen'}
+        </button>
+      </div>
+    ))
+  )}
+</div>
+
       </div>
 
       {/* Add Comment Modal */}
