@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
 
 const AdminDashboard = () => {
-  const { tickets, loading, error, fetchTickets, addComment, updateStatus } = useTicket(); // Updated to use context
+  const { tickets, loading, error, fetchTickets, addComment, updateStatus, sendMail } = useTicket(); // Updated to use context
   const [users, setUsers] = useState([]);
   const [highPriorityCount, setHighPriorityCount] = useState(0);
   const { auth, logout } = useAuth();
@@ -52,7 +52,6 @@ const AdminDashboard = () => {
     setShowCommentModal(true);
   };
 
-  // Add a comment using context
   const handleAddComment = async () => {
     if (!commentText.trim()) {
       toast.error('Comment cannot be empty.');
@@ -60,16 +59,20 @@ const AdminDashboard = () => {
     }
 
     try {
-      await addComment(selectedTicketId, commentText); // Call context function
-      toast.success('Comment added successfully!');
+      // First, add the comment using the context
+      await addComment(selectedTicketId, commentText);
+      
+      // Then, send the email notification
+      await sendMail(selectedTicketId, commentText);
+
+      // Close modal and clear input after success
       setShowCommentModal(false);
       setCommentText('');
     } catch (err) {
-      toast.error('Failed to add comment.');
+      toast.error('Failed to add comment or send email.');
       console.error(err);
     }
   };
-
   // Update ticket status
   const handleUpdateStatus = async (ticketId, newStatus) => {
     try {

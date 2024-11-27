@@ -14,7 +14,7 @@ const verifyToken = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    console.log("decoded in verify", decoded);
+   // console.log("decoded in verify", decoded);
     req.user = decoded; // Attach the decoded user information to `req.user`
     next(); // Ensure the request proceeds to the route handler
   } catch (error) {

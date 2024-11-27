@@ -151,6 +151,7 @@ export const TicketProvider = ({ children }) => {
       console.error('Error adding comment:', err);
       toast.error('An error occurred while adding the comment.');
     }
+    
   };
 
   // Update the status of a ticket
@@ -182,6 +183,30 @@ export const TicketProvider = ({ children }) => {
       toast.error('An error occurred while updating the status.');
     }
   };
+  const sendMail = async (ticketId, comment) => {
+    try {
+      const response = await fetch(`http://localhost:5000/tickets/${ticketId}/comments`, {
+        method: 'POST',  // This is a POST request since it's sending both a comment and an email
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ text: comment }),  // Sending the comment text
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        toast.success('Comment added and email sent successfully!');
+        fetchTickets(); // Optionally refresh tickets
+      } else {
+        toast.error(data.message || 'Failed to add comment or send email.');
+      }
+    } catch (err) {
+      console.error('Error sending email:', err);
+      toast.error('An error occurred while adding the comment and sending the email.');
+    }
+  };
+  
 
   // Ensure fetchTickets is only called once on mount
   useEffect(() => {
@@ -196,7 +221,8 @@ export const TicketProvider = ({ children }) => {
      fetchTickets,
       fetchUserTickets ,
       addComment,
-      updateStatus}}>
+      updateStatus, 
+      sendMail}}>
       {children}
     </TicketContext.Provider>
   );
