@@ -2,19 +2,18 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext";
 
-// Create the context
 const TicketContext = createContext();
 
 // Create a provider component
 export const TicketProvider = ({ children }) => {
-  const { auth } = useAuth(); // Access the auth context here
+  const { auth } = useAuth(); 
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch all tickets
   const fetchTickets = async () => {
-    if (loading) return; // Prevent fetching if already loading
+    if (loading) return;
     setLoading(true);
     setError(null);
 
@@ -28,22 +27,19 @@ export const TicketProvider = ({ children }) => {
         const response = await fetch(`http://localhost:5000/tickets`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`, // Include token from context
+            Authorization: `Bearer ${token}`, 
           },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setTickets(data); // Assuming API returns an array of tickets
+          setTickets(data); 
           console.log("ticket show", data);
         } else {
           const errorData = await response.json();
           setError(errorData.message || "Failed to fetch tickets.");
           toast.error(errorData.message || "Failed to fetch tickets.");
         }
-      } else {
-        toast.error("You are not logged in. Please log in first.");
-        setError("You are not logged in.");
       }
     } catch (error) {
       console.error("Error fetching tickets:", error);
@@ -55,7 +51,7 @@ export const TicketProvider = ({ children }) => {
   };
 
   const fetchUserTickets = async () => {
-    if (loading) return; // Prevent fetching if already loading
+    if (loading) return; 
     setLoading(true);
     setError(null);
 
@@ -70,13 +66,13 @@ export const TicketProvider = ({ children }) => {
         const response = await fetch(`http://localhost:5000/ticket/${userId}`, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`, // Include token from context
+            Authorization: `Bearer ${token}`, 
           },
         });
 
         if (response.ok) {
           const data = await response.json();
-          setTickets(data); // Assuming API returns an array of tickets
+          setTickets(data); 
           console.log("ticket show", data);
         } else {
           const errorData = await response.json();
@@ -98,19 +94,19 @@ export const TicketProvider = ({ children }) => {
 
   const createTicket = async (ticketData) => {
     try {
-      const token = auth.token; // Retrieve token from context
+      const token = auth.token;
       const response = await fetch("http://localhost:5000/ticket", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`, // Include token in the Authorization header
+          Authorization: `Bearer ${token}`, 
         },
         body: JSON.stringify(ticketData),
       });
 
       if (response.ok) {
         toast.success("Ticket created successfully!");
-        await fetchTickets(); // Refresh tickets after creation
+        await fetchTickets(); 
         return true;
       } else {
         const errorData = await response.json();
@@ -143,7 +139,7 @@ export const TicketProvider = ({ children }) => {
 
       if (response.ok) {
         toast.success('Comment added successfully.');
-        fetchTickets(); // Refresh tickets
+        fetchTickets(); 
       } else {
         toast.error(data.message || 'Failed to add comment.');
       }
@@ -174,7 +170,7 @@ export const TicketProvider = ({ children }) => {
 
       if (response.ok) {
         toast.success('Status updated successfully.');
-        fetchTickets(); // Refresh tickets
+        fetchTickets(); 
       } else {
         toast.error(data.message || 'Failed to update status.');
       }
@@ -183,32 +179,7 @@ export const TicketProvider = ({ children }) => {
       toast.error('An error occurred while updating the status.');
     }
   };
-  const sendMail = async (ticketId, comment) => {
-    try {
-      const response = await fetch(`http://localhost:5000/tickets/${ticketId}/comments`, {
-        method: 'POST',  // This is a POST request since it's sending both a comment and an email
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ text: comment }),  // Sending the comment text
-      });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        toast.success('Comment added and email sent successfully!');
-        fetchTickets(); // Optionally refresh tickets
-      } else {
-        toast.error(data.message || 'Failed to add comment or send email.');
-      }
-    } catch (err) {
-      console.error('Error sending email:', err);
-      toast.error('An error occurred while adding the comment and sending the email.');
-    }
-  };
-  
 
-  // Ensure fetchTickets is only called once on mount
   useEffect(() => {
     fetchTickets();
   }, []);
@@ -222,7 +193,7 @@ export const TicketProvider = ({ children }) => {
       fetchUserTickets ,
       addComment,
       updateStatus, 
-      sendMail}}>
+      }}>
       {children}
     </TicketContext.Provider>
   );

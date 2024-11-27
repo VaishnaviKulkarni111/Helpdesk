@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom"; 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -14,7 +14,7 @@ const AuthPage = () => {
   });
 
   const { login, register } = useAuth();
-  const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate();
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
@@ -45,7 +45,7 @@ const AuthPage = () => {
           formData.userType
         );
         toast.success("Registration successful! Please login.");
-        toggleMode(); // Switch to login mode after registration
+        toggleMode();
       }
     } catch (error) {
       toast.error("Error: " + (error.message || "Failed to authenticate."));

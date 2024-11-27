@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
-import { useTicket } from "../context/TicketContext"; // Custom hook import
+import { useTicket } from "../context/TicketContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const Ticket = () => {
   const navigate = useNavigate();
-  const { createTicket } = useTicket(); // Call useTicket directly
+  const { createTicket } = useTicket();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -23,7 +23,7 @@ const Ticket = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await createTicket(formData); // Call createTicket from context
+      await createTicket(formData); 
       toast.success("Ticket created successfully!");
       navigate("/user");
     } catch (error) {

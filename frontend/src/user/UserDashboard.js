@@ -20,7 +20,7 @@ const UserDashboard = () => {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetchUserTickets(); // Fetch tickets on component mount
+    fetchUserTickets(); 
   }, []);
 
   // Filter logic
@@ -51,7 +51,7 @@ const UserDashboard = () => {
       style={{
         backgroundColor: "#F0F0F0",
         minHeight: "100vh",
-        padding: "30px 130px", // More space left and right
+        padding: "30px 140px",
       }}
     >
       {/* Header Section */}
@@ -150,7 +150,7 @@ const UserDashboard = () => {
       <div
         key={ticket._id}
         className="p-3 mb-3 border rounded bg-white shadow-sm"
-        style={{ position: 'relative' }}  // Position relative to this card
+        style={{ position: 'relative' }}  
       >
         {/* Ticket Main Details */}
         <div>
@@ -158,14 +158,14 @@ const UserDashboard = () => {
           <p className="text-muted mb-2">{ticket.description}</p>
         </div>
 
-        {/* Priority & Status on Top Right of each ticket */}
+        {/* Priority & Status */}
         <div
           className="d-flex"
           style={{
             position: 'absolute',
             top: '20px',
             right: '20px',
-            zIndex: 10,  // Ensure it's on top of other content
+            zIndex: 10,  
           }}
         >
           <span

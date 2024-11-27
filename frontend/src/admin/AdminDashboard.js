@@ -8,16 +8,25 @@ import { useNavigate } from 'react-router-dom';
 import { Modal, Button, Form } from 'react-bootstrap';
 
 const AdminDashboard = () => {
-  const { tickets, loading, error, fetchTickets, addComment, updateStatus, sendMail } = useTicket(); // Updated to use context
+  const { tickets, loading, error, fetchTickets, addComment, updateStatus, } = useTicket();
   const [users, setUsers] = useState([]);
   const [highPriorityCount, setHighPriorityCount] = useState(0);
-  const { auth, logout } = useAuth();
+  const {  logout } = useAuth();
   const navigate = useNavigate();
 
   const [showCommentModal, setShowCommentModal] = useState(false);
   const [selectedTicketId, setSelectedTicketId] = useState(null);
   const [commentText, setCommentText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
+  const [filter, setFilter] = useState("all");
+     // Filter logic
+     const filteredTickets = tickets.filter((ticket) => {
+      if (filter === "all") return true;
+      if (filter === "active") return ticket.status === "Active";
+      if (filter === "high") return ticket.priority === "High";
+      if (filter === "medium") return ticket.priority === "Medium";
+      if (filter === "low") return ticket.priority === "Low";
+      return true;
+    });
 
   // Fetch tickets and users
   useEffect(() => {
@@ -59,13 +68,8 @@ const AdminDashboard = () => {
     }
 
     try {
-      // First, add the comment using the context
       await addComment(selectedTicketId, commentText);
       
-      // Then, send the email notification
-      await sendMail(selectedTicketId, commentText);
-
-      // Close modal and clear input after success
       setShowCommentModal(false);
       setCommentText('');
     } catch (err) {
@@ -76,7 +80,7 @@ const AdminDashboard = () => {
   // Update ticket status
   const handleUpdateStatus = async (ticketId, newStatus) => {
     try {
-      await updateStatus(ticketId, newStatus); // Call context function
+      await updateStatus(ticketId, newStatus); 
       toast.success(`Status updated to ${newStatus}`);
     } catch (err) {
       toast.error('Failed to update status.');
@@ -97,7 +101,7 @@ const AdminDashboard = () => {
       style={{
         backgroundColor: '#F0F0F0',
         minHeight: '100vh',
-        padding: '30px 120px',
+        padding: '30px 130px',
       }}
     >
       {/* Header Section */}
@@ -147,20 +151,32 @@ const AdminDashboard = () => {
       <div className="card shadow-sm">
         <div className="card-header bg-white d-flex justify-content-between align-items-center">
           <h5 className="m-0">Tickets Overview</h5>
+          <select
+            className="form-select w-auto"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="high">High Priority</option>
+            <option value="medium">medium Priority</option>
+            <option value="low">low Priority</option>
+
+          </select>
         </div>
         <div className="card-body">
   {loading ? (
     <p>Loading tickets...</p>
   ) : error ? (
     <p className="text-danger">{error}</p>
-  ) : tickets.length === 0 ? (
+  ) : filteredTickets.length === 0 ? (
     <p>No tickets to display.</p>
   ) : (
-    tickets.map((ticket) => (
+    filteredTickets.map((ticket) => (
       <div
         key={ticket._id}
         className="p-3 mb-3 border rounded bg-white shadow-sm"
-        style={{ position: 'relative' }}  // Ensure the badges are positioned relative to this card
+        style={{ position: 'relative' }}  
       >
         {/* Ticket Main Details */}
         <div>
@@ -168,14 +184,14 @@ const AdminDashboard = () => {
           <p className="text-muted mb-2">{ticket.description}</p>
         </div>
 
-        {/* Priority & Status on Top Right of each ticket */}
+        {/* Priority & Status */}
         <div
           className="d-flex"
           style={{
             position: 'absolute',
             top: '25px',
             right: '25px',
-            zIndex: 10,  // Ensure it's on top of other content
+            zIndex: 10, 
           }}
         >
           <span
